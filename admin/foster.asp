@@ -2,7 +2,7 @@
 <!--#include file="checkuser.asp"-->
 <%'checkuser("root,system")%>
 <!--#include file="../inc/conn.asp"-->
-<!--#include file="../inc/upload.asp"-->
+<!--#include file="../inc/clsUpload.asp"-->
 <!--#include file="../inc/utf8.asp"-->
 <%
 Function createFolder()
@@ -48,7 +48,7 @@ sub showClass(isSubClasses,className)
 	else
 		cmd = "Select className From class WHere class is null or class='' Order By Id Desc"
 	end if
-	Set rs = server.createobject("adodb.recordset")
+	Dim rs : Set rs = server.createobject("adodb.recordset")
 	rs.open cmd,conn,0,1
 	do while NOT rs.EOF
 		if isSubClasses then
@@ -64,10 +64,10 @@ sub showClass(isSubClasses,className)
 end sub
 
 Function subclassScript()
-	Set rs = server.createobject("adodb.recordset")
 	Dim cmd,cnt
 	cnt = 0
 	cmd = "Select classname,class From class Where class is not null and class <> ''"
+	Dim rs : Set rs = server.createobject("adodb.recordset")
 	rs.open cmd,conn,0,1
 	do while NOT rs.EOF
 		subclassScript = subclassScript&"asubclass["&cnt&"] = new Array("""&rs("class")&""","""&rs("classname")&""");"
@@ -84,7 +84,7 @@ end function
 Function showclasses()
 	Dim cmd,classes
 	cmd = "Select classname From class Where class is null or class=''"
-	Set rs = server.createobject("adodb.recordset")
+	Dim rs : Set rs = server.createobject("adodb.recordset")
 	rs.open cmd,conn,0,1
 	do while NOT rs.EOF
 		classes = classes&"<option value="&rs("className")&">"&rs("className")&"</option>"
@@ -97,17 +97,17 @@ end function
 
 Dim action,msg,cmd,classes,subclasses,title,description,gongmu,tclass,subclass
 Dim allowExt
+Dim rs
 allowExt = ".jpg|.jpeg|.gif|.png"
-Set rs = server.createobject("adodb.recordset")
 action = request.QueryString("action")
 if action = "add" then
 	checkuser("root,system,user")
-	Set upload = new upload_5xsoft
-	title = upload.form("title")
-	description = upload.form("description")
-	gongmu = upload.form("gongmu")
-	tclass = upload.form("class")
-	subclass = upload.form("subclass")
+	Set upload = New clsUpload
+	title = upload.Fields("title").Value
+	description = upload.Fields("description").Value
+	gongmu = upload.Fields("gongmu").Value
+	tclass = upload.Fields("class").Value
+	subclass = upload.Fields("subclass").Value
 	if len(title)<1 or len(title)>50 then
 		msg = "标题的长度应保持在1-50字之间"
 	elseif len(description)<1 or len(description)>200 then
@@ -119,9 +119,9 @@ if action = "add" then
 	elseif subclass = "" then
 		msg = "请选择二级分类"
 	else
-		Set preview = upload.file("preview")
+		Set preview = upload.Fields("preview")
 		Dim picSize
-		picSize = preview.FileSize
+		picSize = preview.Length
 		if picSize < 1 then
 			msg = "请上传缩略图片"
 		elseif picSize > 51200 then
@@ -138,9 +138,9 @@ if action = "add" then
 					msg = "上传的文件的后缀名不符合要求"
 				else
 					'Save File
-					Set pic = upload.file("pic")
+					Set pic = upload.Fields("pic")
 					filename = pic.FileName
-					picSize = pic.FileSize
+					picSize = pic.Length
 					if picSize < 1 then
 						msg = "请上传原始图片"
 					elseif picSize > 204800 then
@@ -163,8 +163,11 @@ if action = "add" then
 								conn.execute cmd
 								'Response.Write(folderPath&" -> "&previewSavefile&" -> "&picSavefile)
 								'Response.End()
-								preview.saveAs Server.MapPath("/album_images/"&folderPath&"/"&previewSavefile)
-								pic.saveAs Server.MapPath("/album_images/"&folderPath&"/"&picSavefile)
+								'Response.Write(Server.MapPath("../album_images/"&folderPath&"/"&previewSavefile))
+								preview.SaveAs Server.MapPath("../album_images/"&folderPath&"/"&previewSavefile)
+								'Response.End()
+								'Response.Write(Server.MapPath("../album_images/"&folderPath&"/"&picSavefile))
+								pic.SaveAs Server.MapPath("../album_images/"&folderPath&"/"&picSavefile)
 								msg = "添加成功"
 							end if
 						end if
@@ -188,6 +191,7 @@ elseif action = "list" then
 	'pagination ?
 	Dim list,id,f
 	f = request.QueryString("f")
+	Set rs = server.createobject("adodb.recordset")
 	rs.open cmd,conn,0,1
 	do while NOT rs.EOF
 		id = rs("id")
@@ -208,6 +212,7 @@ elseif action = "list" then
 		list = list&"</td>"
 		rs.movenext
 	Loop
+	rs.close()
 	if list <> "" then
 		list = "<table border=0><tr><td>名称</td><td>创建人</td><td>操作</td></tr>"&list&"</table>"
 	end if
@@ -217,6 +222,7 @@ elseif action = "del" then
 	checkuser("root,system")
 	if request.QueryString("id") <> "" and cint(request.QueryString("id")) > 0 then
 		cmd = "Select folder From album Where id="&cint(request.QueryString("id"))
+		Set rs = server.createobject("adodb.recordset")
 		rs.open cmd,conn,0,1
 		Dim folder
 		folder = rs("folder")
@@ -225,6 +231,7 @@ elseif action = "del" then
 		conn.execute cmd
 		cmd = "Delete From album Where id="&cint(request.QueryString("id"))
 		conn.execute cmd
+		rs.close()
 		Response.Write("删除成功")
 	else
 		Response.Write("参数传递错误")
@@ -251,8 +258,10 @@ elseif action = "showmodify" then
 	else
 		cmd = "Select title,description,gongmu From album Where Id="&cint(request.QueryString("Id"))
 	end if
+	Set rs = server.createobject("adodb.recordset")
 	rs.open cmd,conn,0,1
 	if rs.bof and rs.eof and session("role") = "user" then
+		rs.close()
 		Response.Write("普通权限的用户不能修改别人创建的领养信息")
 		Response.End()
 	else
@@ -260,6 +269,7 @@ elseif action = "showmodify" then
 		description = rs("description")
 		gongmu = rs("gongmu")
 	End if
+	rs.close()
 elseif action = "modify" then
 	title = request.Form("title")
 	description = request.Form("description")
@@ -291,22 +301,25 @@ elseif action = "uploadpic" then
 	else
 		cmd = "Select Id,folder From album Where Id="&cint(request.QueryString("Id"))
 	end if
+	Set rs = server.createobject("adodb.recordset")
 	rs.open cmd,conn,0,1
 	if rs.bof and rs.eof and session("role") = "user" then
+		rs.close()
 		Response.Write("普通权限的用户不能在别人创建的领养信息中上传图片")
 		Response.End()
 	else
 		folderPath = rs("folder")
 		albumId = rs("Id")
 	End if
-	Set upload = new upload_5xsoft
-	uploadpic = upload.form("uploadpic")
-	description = upload.form("description")
+	rs.close()
+	Set upload = New clsUpload
+	uploadpic = upload.Form("uploadpic")
+	description = upload.Form("description")
 	if len(description)<1 or len(description)>200 then
 		msg = "描述的长度要保持在1-200字之间"
 	else
-		Set uploadpic = upload.file("uploadpic")
-		picSize = uploadpic.FileSize
+		Set uploadpic = upload.Files(0)
+		picSize = uploadpic.Size
 		if picSize < 1 then
 			msg = "请上传图片"
 		elseif picSize > 204800 then
