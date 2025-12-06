@@ -74,8 +74,10 @@ elseif action = "newsubclass" or action = "modifysubclass" then
 	subclassname = Replace(Replace(Trim(request.Form("subclassname")),"'",""),"/","")
 	subclasslist = Replace(Trim(request.Form("subclasslist")),"'","")
 	slashPos = instr(subclasslist,"/")
-	oldclassname = Left(subclasslist,slashPos - 1)
-	oldsubclassname = Right(subclasslist,len(subclasslist) - slashPos)
+	if slashPos > 0 then
+		oldclassname = Left(subclasslist,slashPos - 1)
+		oldsubclassname = Right(subclasslist,len(subclasslist) - slashPos)
+	end if
 	if action = "modifysubclass" then
 		if request.Form("subclasscaozuo") = "del" then
 			cmd = "Delete From class Where classname='"&oldsubclassname&"' and class='"&oldclassname&"'"
