@@ -6,5 +6,9 @@
 
 ![preview](./preview.jpg)
 
+**首页地址**  
+http://localhost/index.asp
 
-
+**管理员地址**  
+http://localhost/admin/login.asp  
+用户名和密码都是：admin
