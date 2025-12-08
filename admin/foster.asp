@@ -2,8 +2,13 @@
 <!--#include file="checkuser.asp"-->
 <%'checkuser("root,system")%>
 <!--#include file="../inc/conn.asp"-->
-<!--#include file="../inc/clsUpload.asp"-->
 <!--#include file="../inc/utf8.asp"-->
+<%
+Const adSaveCreateOverWrite = 2
+Const adTypeBinary = 1
+Const adLongVarBinary = 205
+%>
+<!--#include file="../inc/clsUpload.asp"-->
 <%
 Function createFolder()
 	Set fso = Server.CreateObject("Scripting.FileSystemObject")
@@ -164,10 +169,10 @@ if action = "add" then
 								'Response.Write(folderPath&" -> "&previewSavefile&" -> "&picSavefile)
 								'Response.End()
 								'Response.Write(Server.MapPath("../album_images/"&folderPath&"/"&previewSavefile))
-								preview.SaveAs Server.MapPath("../album_images/"&folderPath&"/"&previewSavefile)
+								upload("preview").SaveAs Server.MapPath("../album_images/"&folderPath&"/"&previewSavefile)
 								'Response.End()
 								'Response.Write(Server.MapPath("../album_images/"&folderPath&"/"&picSavefile))
-								pic.SaveAs Server.MapPath("../album_images/"&folderPath&"/"&picSavefile)
+								upload("pic").SaveAs Server.MapPath("../album_images/"&folderPath&"/"&picSavefile)
 								msg = "添加成功"
 							end if
 						end if
@@ -313,13 +318,12 @@ elseif action = "uploadpic" then
 	End if
 	rs.close()
 	Set upload = New clsUpload
-	uploadpic = upload.Form("uploadpic")
-	description = upload.Form("description")
+	description = upload.Fields("description").Value
 	if len(description)<1 or len(description)>200 then
 		msg = "描述的长度要保持在1-200字之间"
 	else
-		Set uploadpic = upload.Files(0)
-		picSize = uploadpic.Size
+		Set uploadpic = upload.Fields("uploadpic")
+		picSize = uploadpic.Length
 		if picSize < 1 then
 			msg = "请上传图片"
 		elseif picSize > 204800 then
@@ -341,7 +345,7 @@ elseif action = "uploadpic" then
 					conn.execute cmd
 					cmd = "Update album Set photoscount=photoscount+1 Where Id="&albumId
 					conn.execute cmd
-					uploadpic.saveAs Server.MapPath("/album_images/"&folderPath&"/"&uploadpicSavefile)
+					upload("uploadpic").saveAs Server.MapPath("/album_images/"&folderPath&"/"&uploadpicSavefile)
 					msg = "添加成功"
 				end if
 			end if
