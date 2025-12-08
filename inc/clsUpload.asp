@@ -489,29 +489,56 @@ Class clsUpload
 
     End Sub
 ' ------------------------------------------------------------------------------
-    Private Function CStrU(ByRef pstrANSI)
+ Private Function CStrU(ByRef pstrANSI)
 
-        ' Converts an ANSI string to Unicode
-        ' Best used for small strings
+  Dim llngLength '' # Length of ANSI string
+  Dim llngIndex '' # Current position
+  Dim bytVal
+  Dim intChar
 
-        Dim llngLength  ' Length of ANSI string
-        Dim llngIndex   ' Current position
+  '' # determine length
+  llngLength = LenB(pstrANSI)
 
-        ' determine length
-        llngLength = LenB(pstrANSI)
+  '' # Loop through each character
+  llngIndex = 1
+  Do While llngIndex <= llngLength
 
-        ' Loop through each character
-        For llngIndex = 1 To llngLength
+   bytVal = AscB(MidB(pstrANSI, llngIndex, 1))
+   llngIndex = llngIndex + 1
 
-            ' Pull out ANSI character
-            ' Get Ascii value of ANSI character
-            ' Get Unicode Character from Ascii
-            ' Append character to results
-            CStrU = CStrU & Chr(AscB(MidB(pstrANSI, llngIndex, 1)))
+   If bytVal < &h80 Then
+    intChar = bytVal
+   ElseIf bytVal < &hE0 Then
 
-        Next
+    intChar = (bytVal And &h1F) * &h40
 
-    End Function
+    bytVal =  AscB(MidB(pstrANSI, llngIndex, 1))
+    llngIndex = llngIndex + 1
+
+    intChar = intChar + (bytVal And &h3f)
+
+   ElseIf bytVal < &hF0 Then
+
+    intChar = (bytVal And &hF) * &h1000
+
+    bytVal =  AscB(MidB(pstrANSI, llngIndex, 1))
+    llngIndex = llngIndex + 1
+
+    intChar = intChar + (bytVal And &h3F) * &h40
+
+    bytVal =  AscB(MidB(pstrANSI, llngIndex, 1))
+    llngIndex = llngIndex + 1
+
+    intChar = intChar + (bytVal And &h3F)
+
+   Else
+    intChar = &hBF
+   End If
+
+   CStrU = CStrU & ChrW(intChar)
+  Loop
+
+ End Function
 ' ------------------------------------------------------------------------------
     Private Function CStrB(ByRef pstrUnicode)
 
