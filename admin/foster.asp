@@ -19,17 +19,17 @@ Function createFolder()
 	Do
 		Randomize
 		foldername = Year(Now())&Month(Now())&Day(Now())&Hour(Now())&Minute(Now())&Second(Now())&Replace(Mid((Rnd * 1000000),1,4),".","")
-	Loop Until fso.FileExists(Server.MapPath("../album_images/"&foldername)) = false
+	Loop Until fso.FolderExists(Server.MapPath("../album_images/"&foldername)) = false
 	fso.CreateFolder Server.MapPath("../album_images/"&foldername)
 	Set fso = nothing
 	createFolder = foldername
 	'Response.Write(folderPath)
 end Function
 
-Function delFolder(folderpath)
+Function delFolder(folderPath)
 	Set fso = Server.CreateObject("Scripting.FileSystemObject")
-	if fso.FileExists(Server.MapPath("../album_images/"&folderpath)) = true then
-		fso.DeleteFolder(Server.MapPath("/album_images/"&folderpath))
+	if fso.FolderExists(Server.MapPath("../album_images/"&folderPath)) = true then
+		fso.DeleteFolder(Server.MapPath("/album_images/"&folderPath))
 	end if
 	Set fso = nothing
 end Function
@@ -159,12 +159,12 @@ if action = "add" then
 							if Instr(allowExt,ext) < 1 then
 								msg = "上传的文件的后缀名不符合要求"
 							else
-								Dim previewSavefile,picSavefile,folderpath
-								folderpath = createFolder()
-								previewSavefile = getFilename(folderpath,ext)
-								picSavefile = getFilename(folderpath,ext)
+								Dim previewSavefile,picSavefile,folderPath
+								folderPath = createFolder()
+								previewSavefile = getFilename(folderPath,ext)
+								picSavefile = getFilename(folderPath,ext)
 								cmd = "Insert Into album(title,username,folder,cover,photo,description,photoscount,commentscount,gongmu,class,subclass)Values("
-								cmd = cmd&"'"&title&"','"&session("username")&"','"&folderpath&"','"&folderPath&"/"&previewSavefile&"','"&folderPath&"/"&picSavefile&"','"&description&"',1,0,'"&gongmu&"','"&tclass&"','"&subclass&"')"
+								cmd = cmd&"'"&title&"','"&session("username")&"','"&folderPath&"','"&folderPath&"/"&previewSavefile&"','"&folderPath&"/"&picSavefile&"','"&description&"',1,0,'"&gongmu&"','"&tclass&"','"&subclass&"')"
 								conn.execute cmd
 								'Response.Write(folderPath&" -> "&previewSavefile&" -> "&picSavefile)
 								'Response.End()
