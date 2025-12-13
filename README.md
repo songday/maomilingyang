@@ -12,3 +12,16 @@ http://localhost/index.asp
 **管理员地址**  
 http://localhost/admin/login.asp  
 用户名和密码都是：admin
+
+# Cat adoption information posting platform
+
+In 2007, a friend launched a cat forum, which included a section for posting cat adoption information.
+
+The forum uses Dongwang Xianfeng, but it doesn't meet some of the requirements and they haven't found a suitable forum plugin, so they asked me to help them create a cat adoption information posting platform.
+
+**Homepage address**  
+http://localhost/index.asp
+
+**Administrator address**  
+http://localhost/admin/login.asp  
+Both username and password are: admin
